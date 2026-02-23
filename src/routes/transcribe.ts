@@ -32,10 +32,16 @@ export async function transcribeRoutes(app: FastifyInstance): Promise<void> {
       const buffer = await file.toBuffer();
 
       // Build FormData for Groq API
+      // Use ArrayBuffer to avoid Node Buffer / BlobPart type mismatch
+      const arrayBuffer = buffer.buffer.slice(
+        buffer.byteOffset,
+        buffer.byteOffset + buffer.byteLength,
+      ) as ArrayBuffer;
+
       const formData = new FormData();
       formData.append(
         'file',
-        new Blob([buffer], { type: file.mimetype || 'audio/webm' }),
+        new Blob([arrayBuffer], { type: file.mimetype || 'audio/webm' }),
         file.filename || 'audio.webm',
       );
       formData.append('model', 'whisper-large-v3-turbo');
